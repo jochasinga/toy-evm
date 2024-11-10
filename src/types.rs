@@ -15,168 +15,91 @@ pub fn to_uint256(bytes: &[u8], endian: Endian) -> UInt256 {
     }
 }
 
-pub struct BytesPair {
-    low: Vec<u8>,
-    high: Vec<u8>,
-}
+pub fn hex_to_bytes_pair(n: &str, endian: Endian) -> (Vec<u8>, Vec<u8>) {
 
-pub fn hex_to_bytes_pair(n: &str, endian: Endian) -> BytesPair {
-
-    // let n = "0x000000000000000000000000000000000000000000000000000000000000014a";
-    let a = n.strip_prefix("0x").unwrap();
-    // println!("{}", a.len());
-
-    let mut low: Vec<u8> = Vec::with_capacity(16);
-    let mut high: Vec<u8> = Vec::with_capacity(16);
+    let a = n.trim().strip_prefix("0x").unwrap();
 
     match endian {
         Endian::Big => {
-            let base_low = &a[..32];
-            let base_high = &a[32..];
+            // Take the first 16 bytes (32 chars) as the low part and the last 16 bytes (32 chars) as the high part.
+            let low_hex = &a[..32];
+            let high_hex = &a[32..];
 
-            println!("base_low {}", base_low);
-            println!("base_high {}", base_high);
+            let low_num = u128::from_str_radix(low_hex, 16).unwrap();
+            let low_bytes = low_num.to_be_bytes().to_vec();
 
-            let low_chars: Vec<char> = base_low.chars().collect();
+            let high_num = u128::from_str_radix(high_hex, 16).unwrap();
+            let high_bytes = high_num.to_be_bytes().to_vec();
 
-            let mut low_pairs = Vec::with_capacity(16);
-
-            let high_chars: Vec<char> = base_high.chars().collect();
-
-            let mut high_pairs = Vec::with_capacity(16);
-
-            let mut i = 0;
-
-            while i + 1 < low_chars.len() {
-                let a = low_chars[i];
-                let b = low_chars[i + 1];
-                println!("# {} : {}", a, b);
-                low_pairs.push((a, b));
-                i += 2;
-            }
-
-            i = 0;
-
-            while i + 1 < high_chars.len() {
-                let a = high_chars[i];
-                let b = high_chars[i + 1];
-                println!("# {} : {}", a, b);
-                high_pairs.push((a, b));
-                i += 2;
-            }
-
-            println!("low_pairs.len(): {}", low_pairs.len());
-            println!("low_pairs: {:?}", low_pairs);
-
-            let low_bytes: Vec<u8> = low_pairs
-                .iter()
-                .map(|(a, b)| {
-                    let s = format!("{}{}", a, b);
-                    println!("{}", s);
-                    let a = u8::from_str_radix(&s, 16).unwrap();
-                    a
-                })
-                .collect();
-
-            let high_bytes: Vec<u8> = high_pairs
-                .iter()
-                .map(|(a, b)| {
-                    let s = format!("{}{}", a, b);
-                    println!("{}", s);
-                    let a = u8::from_str_radix(&s, 16).unwrap();
-                    a
-                })
-                .collect();
-
-            println!("low_bytes: {:?}", low_bytes);
-            low = low_bytes;
-            high = high_bytes;
+            return (low_bytes, high_bytes);
         },
         Endian::Little => {
-            let base_low = &a[32..];
-            let base_high = &a[..32];
+            // Take the last 16 bytes (32 chars) as the low part and the first 16 bytes (32 chars) as the high part.
+            let low_hex = &a[32..];
+            let high_hex = &a[..32];
 
-            println!("base_low {}", base_low);
-            println!("base_high {}", base_high);
-
-            let low_chars: Vec<char> = base_low.chars().collect();
-
-            let mut low_pairs = Vec::with_capacity(16);
-
-            let high_chars: Vec<char> = base_high.chars().collect();
-
-            let mut high_pairs = Vec::with_capacity(16);
-
-            let mut i = 0;
-
-            while i + 1 < low_chars.len() {
-                let a = low_chars[i];
-                let b = low_chars[i + 1];
-                println!("# {} : {}", a, b);
-                low_pairs.push((a, b));
-                i += 2;
-            }
-
-            i = 0;
-
-            while i + 1 < high_chars.len() {
-                let a = high_chars[i];
-                let b = high_chars[i + 1];
-                println!("# {} : {}", a, b);
-                high_pairs.push((a, b));
-                i += 2;
-            }
-
-            println!("low_pairs.len(): {}", low_pairs.len());
-            println!("low_pairs: {:?}", low_pairs);
-
-            let low_bytes: Vec<u8> = low_pairs
+            let low_num = u128::from_str_radix(low_hex, 16).unwrap();
+            let low_bytes = low_num.to_be_bytes().to_vec()
                 .iter()
-                .map(|(a, b)| {
-                    let s = format!("{}{}", a, b);
-                    println!("{}", s);
-                    let a = u8::from_str_radix(&s, 16).unwrap();
-                    a
-                })
-                .rev()
+                .rev() // Reverse the order of the bytes
+                .cloned()
                 .collect();
 
-            let high_bytes: Vec<u8> = high_pairs
+            let high_num = u128::from_str_radix(high_hex, 16).unwrap();
+            let high_bytes = high_num.to_be_bytes().to_vec()
                 .iter()
-                .map(|(a, b)| {
-                    let s = format!("{}{}", a, b);
-                    println!("{}", s);
-                    let a = u8::from_str_radix(&s, 16).unwrap();
-                    a
-                })
-                .rev()
+                .rev()// Reverse the order of the bytes
+                .cloned()
                 .collect();
 
-            println!("low_bytes: {:?}", low_bytes);
-            low = low_bytes;
-            high = high_bytes;
+            // Keeping this dumb first attempt for reference.
+
+            // let low_chars: Vec<char> = base_low.chars().collect();
+            // let mut low_pairs = Vec::with_capacity(16);
+            // let high_chars: Vec<char> = base_high.chars().collect();
+            // let mut high_pairs = Vec::with_capacity(16);
+            // let mut i = 0;
+            // while i + 1 < low_chars.len() {
+            //     let a = low_chars[i];
+            //     let b = low_chars[i + 1];
+            //     println!("# {} : {}", a, b);
+            //     low_pairs.push((a, b));
+            //     i += 2;
+            // }
+            // i = 0;
+            // while i + 1 < high_chars.len() {
+            //     let a = high_chars[i];
+            //     let b = high_chars[i + 1];
+            //     println!("# {} : {}", a, b);
+            //     high_pairs.push((a, b));
+            //     i += 2;
+            // }
+            // let low_bytes: Vec<u8> = low_pairs
+            //     .iter()
+            //     .map(|(a, b)| {
+            //         let s = format!("{}{}", a, b);
+            //         println!("{}", s);
+            //         let a = u8::from_str_radix(&s, 16).unwrap();
+            //         a
+            //     })
+            //     .rev()
+            //     .collect();
+            // let high_bytes: Vec<u8> = high_pairs
+            //     .iter()
+            //     .map(|(a, b)| {
+            //         let s = format!("{}{}", a, b);
+            //         println!("{}", s);
+            //         let a = u8::from_str_radix(&s, 16).unwrap();
+            //         a
+            //     })
+            //     .rev()
+            //     .collect();
+
+            return (low_bytes, high_bytes);
         },
     };
-
-    BytesPair{ low, high }
-
-    //     Endian::Little => {
-    //         let bytes: Vec<u8> = a
-    //             .chars()
-    //             .collect::<Vec<char>>()
-    //             .chunks(2)
-    //             .map(|pair| {
-    //                 let s: String = pair.iter().collect();
-    //                 to_u8::from_str_radix(&s, 16).unwrap()
-    //             })
-    //             .rev()
-    //             .collect();
-    //         bytes
-    //     },
-    // }
-    // low = u128::from_str_radix(&s[32..], radix).map_err(|_| "Invalid hex")?;
-    // high = u128::from_str_radix(&s[..32], radix).map_err(|_| "Invalid hex")?
 }
+
 
 impl Default for Endian {
     fn default() -> Self {
@@ -641,7 +564,7 @@ mod tests {
     #[test]
     fn test_hex_to_bytes() {
         let n = "0x000000000000000000000000000000000000000000000000000000000000014a";
-        let BytesPair{ low, high } = hex_to_bytes_pair(n, Endian::Little);
+        let (low, high) = hex_to_bytes_pair(n, Endian::Little);
         let expected_low = vec![
             0x4a, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -654,7 +577,7 @@ mod tests {
         assert_eq!(low, expected_low);
         assert_eq!(high, expected_high);
 
-        let BytesPair{ low, high } = hex_to_bytes_pair(n, Endian::Big);
+        let (low, high) = hex_to_bytes_pair(n, Endian::Big);
 
         let expected_low = vec![
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -668,12 +591,38 @@ mod tests {
         assert_eq!(low, expected_low);
         assert_eq!(high, expected_high);
 
-        // let bytes = hex_to_bytes_pair(n, Endian::Little);
-        // let expected = vec![
-        //     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        //     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x4a,
-        // ];
-        // assert_eq!(bytes, expected);
+        let n = "0xff4567890abcdef1234567890ac203d51234567890abcdef1234567890abcdef";
+
+        let (low, high) = hex_to_bytes_pair(n, Endian::Big);
+        let expected_low = vec![
+            0xff, 0x45, 0x67, 0x89, 0x0a, 0xbc, 0xde, 0xf1,
+            0x23, 0x45, 0x67, 0x89, 0x0a, 0xc2, 0x03, 0xd5
+        ];
+        let expected_high = [
+            0x12, 0x34, 0x56, 0x78, 0x90, 0xab, 0xcd, 0xef,
+            0x12, 0x34, 0x56, 0x78, 0x90, 0xab, 0xcd, 0xef
+        ];
+
+        assert_eq!(low, expected_low);
+        assert_eq!(high, expected_high);
+
+        let (low, high) = hex_to_bytes_pair(n, Endian::Little);
+
+        let expected_high: Vec<u8> = vec![
+            0xff, 0x45, 0x67, 0x89, 0x0a, 0xbc, 0xde, 0xf1,
+            0x23, 0x45, 0x67, 0x89, 0x0a, 0xc2, 0x03, 0xd5
+        ].iter().rev().cloned().collect();
+        let expected_low: Vec<u8> = [
+            0x12, 0x34, 0x56, 0x78, 0x90, 0xab, 0xcd, 0xef,
+            0x12, 0x34, 0x56, 0x78, 0x90, 0xab, 0xcd, 0xef
+        ].iter().rev().cloned().collect();
+
+        println!("expected_low: {:?}", expected_low);
+
+        assert_eq!(low, expected_low);
+        assert_eq!(high, expected_high);
+
+
     }
 
     #[test]
