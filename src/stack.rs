@@ -358,7 +358,7 @@ pub fn lex_bytecode(bytecode: &str) -> Result<Vec<Opcode>, ParseIntError> {
 #[cfg(test)]
 mod tests {
 
-    use crate::types::Endian;
+    use crate::types::{utils::pad_bytes, Endian};
 
     use super::*;
 
@@ -368,12 +368,17 @@ mod tests {
         let _ = s.push(0x01.into());
         let _ = s.push(0x02.into());
         let _ = s.push(0x03.into());
+
+        let one = pad_bytes(&[0x01], 0x00, Endian::Big);
+        let two = pad_bytes(&[0x02], 0x00, Endian::Big);
+        let three = pad_bytes(&[0x03], 0x00, Endian::Big);
+
         assert_eq!(
             s,
             Stack(vec![
-                UInt256::from_be_bytes(&[0x01]),
-                UInt256::from_be_bytes(&[0x02]),
-                UInt256::from_be_bytes(&[0x03]),
+                UInt256::from_be_bytes(&one),
+                UInt256::from_be_bytes(&two),
+                UInt256::from_be_bytes(&three),
             ])
         );
     }
@@ -384,8 +389,10 @@ mod tests {
         let _ = s.push(0x01.into());
         let _ = s.push(0x02.into());
         let _ = s.push(0x03.into());
+
+        let three = pad_bytes(&[0x03], 0x00, Endian::Big);
         let (hd, tl) = s.pop();
-        assert_eq!(hd.unwrap(), UInt256::from_be_bytes(&[0x03]));
+        assert_eq!(hd.unwrap(), UInt256::from_be_bytes(&three));
         assert_eq!(
             *tl,
             Stack(vec![
