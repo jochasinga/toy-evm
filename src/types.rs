@@ -347,6 +347,7 @@ impl BitOr for UInt256 {
     }
 }
 
+// FIXME: This implementation hangs!
 pub fn divide(dividend: UInt256, divisor: UInt256) -> (UInt256, UInt256) {
     let zero = UInt256::ZERO;
     if dividend < divisor {
