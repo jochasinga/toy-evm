@@ -1,4 +1,4 @@
-# tinyevm
+# evmlite
 
 A zero-dependency EVM stack machine (WIP).
 
